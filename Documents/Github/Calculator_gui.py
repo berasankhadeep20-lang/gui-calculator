@@ -1,54 +1,81 @@
 import tkinter as tk
+import math
 
-# Function to update expression in the entry box
+# ---------------- Functions ----------------
 def press(key):
+    entry.insert(tk.END, str(key))
+
+def clear():
+    entry.delete(0, tk.END)
+
+def backspace():
     current = entry.get()
     entry.delete(0, tk.END)
-    entry.insert(0, current + str(key))
+    entry.insert(0, current[:-1])
 
-# Function to evaluate expression
 def equalpress():
     try:
-        result = str(eval(entry.get()))
+        expression = entry.get()
+        # Replace '√' with math.sqrt
+        expression = expression.replace('√', 'math.sqrt')
+        result = str(eval(expression))
         entry.delete(0, tk.END)
         entry.insert(0, result)
     except:
         entry.delete(0, tk.END)
         entry.insert(0, "Error")
 
-# Function to clear entry box
-def clear():
-    entry.delete(0, tk.END)
+def toggle_dark_mode():
+    if root['bg'] == 'white':
+        root.config(bg='black')
+        entry.config(bg='gray20', fg='white', insertbackground='white')
+        for btn in buttons.values():
+            btn.config(bg='gray30', fg='white')
+    else:
+        root.config(bg='white')
+        entry.config(bg='white', fg='black', insertbackground='black')
+        for btn in buttons.values():
+            btn.config(bg='SystemButtonFace', fg='black')
 
-# Main GUI window
+# ---------------- GUI Setup ----------------
 root = tk.Tk()
-root.title("Python GUI Calculator")
-root.geometry("300x400")
+root.title("Advanced Python GUI Calculator")
+root.geometry("360x500")
+root.resizable(False, False)
 
-# Entry box
-entry = tk.Entry(root, font=("Arial", 18), borderwidth=5, relief="ridge", justify="right")
-entry.grid(row=0, column=0, columnspan=4, ipadx=8, ipady=15, padx=5, pady=5)
+entry = tk.Entry(root, font=("Arial", 20), borderwidth=5, relief="ridge", justify="right")
+entry.grid(row=0, column=0, columnspan=5, ipadx=8, ipady=15, padx=5, pady=5)
 
-# Button layout
-buttons = [
-    ('7', 1, 0), ('8', 1, 1), ('9', 1, 2), ('/', 1, 3),
-    ('4', 2, 0), ('5', 2, 1), ('6', 2, 2), ('*', 2, 3),
-    ('1', 3, 0), ('2', 3, 1), ('3', 3, 2), ('-', 3, 3),
-    ('0', 4, 0), ('.', 4, 1), ('=', 4, 2), ('+', 4, 3),
+# ---------------- Buttons ----------------
+button_texts = [
+    ('7', '8', '9', '/', 'C'),
+    ('4', '5', '6', '*', '⌫'),
+    ('1', '2', '3', '-', '√'),
+    ('0', '.', '%', '+', '='),
+    ('Dark Mode',)
 ]
 
-for (text, row, col) in buttons:
-    if text == "=":
-        action = equalpress
-    else:
-        action = lambda x=text: press(x)
+buttons = {}
 
-    tk.Button(root, text=text, width=7, height=2, font=("Arial", 14),
-              command=action).grid(row=row, column=col, padx=3, pady=3)
+for r, row in enumerate(button_texts, 1):
+    for c, text in enumerate(row):
+        if text == '=':
+            action = equalpress
+        elif text == 'C':
+            action = clear
+        elif text == '⌫':
+            action = backspace
+        elif text == 'Dark Mode':
+            action = toggle_dark_mode
+        else:
+            action = lambda x=text: press(x)
+        
+        btn = tk.Button(root, text=text, width=7, height=2, font=("Arial", 14), command=action)
+        if text == 'Dark Mode':
+            btn.grid(row=r, column=0, columnspan=5, sticky="we", padx=3, pady=3)
+        else:
+            btn.grid(row=r, column=c, padx=3, pady=3)
+        buttons[text] = btn
 
-# Clear button
-tk.Button(root, text="C", width=32, height=2, font=("Arial", 14),
-          command=clear).grid(row=5, column=0, columnspan=4, padx=3, pady=3)
-
-# Run the app
+# ---------------- Run App ----------------
 root.mainloop()
